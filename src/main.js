@@ -131,7 +131,21 @@ function createTab(url = DEFAULT_URL, makeActive = true) {
     tab.url = navUrl;
     sendState();
   });
-  wc.setWindowOpenHandler(({ url: newUrl }) => {
+  wc.setWindowOpenHandler(({ url: newUrl, features }) => {
+    const looksLikeAuthPopup = /width=|height=/.test(features || '');
+    if (looksLikeAuthPopup) {
+      return {
+        action: 'allow',
+        outlivesOpener: true,
+        overrideBrowserWindowOptions: {
+          autoHideMenuBar: true,
+          webPreferences: {
+            contextIsolation: true,
+            sandbox: true,
+          },
+        },
+      };
+    }
     createTab(newUrl, true);
     return { action: 'deny' };
   });
@@ -194,6 +208,11 @@ function isSameSite(hostA, hostB) {
 
 function isThirdPartyRequest(details) {
   if (!details.url.startsWith('http')) return false;
+  // Only strip cookies on tracking-style subresources. Leaving frame
+  // navigations alone avoids breaking cross-domain SSO/login iframes
+  // and OAuth redirect flows, which legitimately rely on third-party
+  // cookies during sign-in.
+  if (details.resourceType === 'mainFrame' || details.resourceType === 'subFrame') return false;
   const tab = tabs.find((t) => t.view.webContents.id === details.webContentsId);
   if (!tab) return false;
   const topHost = getHostname(tab.url);
