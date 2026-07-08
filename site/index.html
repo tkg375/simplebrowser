@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Simple Browser — A simple, modern web browser</title>
+<meta name="description" content="A simple, modern, Chromium-based web browser." />
+<link rel="icon" href="icon.png" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main>
+    <img class="logo" src="icon.png" alt="Simple Browser icon" />
+    <h1>Simple Browser</h1>
+    <p class="tagline">A simple, modern, Chromium-based web browser.</p>
+
+    <div class="download-card">
+      <button id="download-btn" class="download-btn" disabled>
+        <span id="download-label">Loading latest version…</span>
+      </button>
+      <div id="version-meta" class="version-meta"></div>
+      <div id="other-platforms" class="other-platforms"></div>
+    </div>
+
+    <p class="footer">
+      <a href="https://github.com/tkg375/simplebrowser" target="_blank" rel="noopener">View on GitHub</a>
+    </p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
