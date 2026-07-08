@@ -1,0 +1,49 @@
+{
+  "name": "simple-browser",
+  "version": "1.0.0",
+  "description": "A simple, modern Chromium-based web browser",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "release": "electron-builder --publish always"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^43.1.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
+  "build": {
+    "appId": "com.tkg375.simplebrowser",
+    "productName": "Simple Browser",
+    "files": [
+      "src/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "tkg375",
+      "repo": "simplebrowser"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
