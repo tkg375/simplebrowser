@@ -1,6 +1,6 @@
 {
   "name": "simple-browser",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A simple, modern Chromium-based web browser",
   "main": "src/main.js",
   "scripts": {
