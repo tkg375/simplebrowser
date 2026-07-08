@@ -222,7 +222,9 @@ function sendUpdateStatus(status, extra = {}) {
 }
 
 autoUpdater.autoDownload = true;
+autoUpdater.on('checking-for-update', () => sendUpdateStatus('checking'));
 autoUpdater.on('update-available', (info) => sendUpdateStatus('available', { version: info.version }));
+autoUpdater.on('update-not-available', () => sendUpdateStatus('not-available'));
 autoUpdater.on('update-downloaded', (info) => sendUpdateStatus('ready', { version: info.version }));
 autoUpdater.on('error', (err) => sendUpdateStatus('error', { message: err == null ? 'unknown' : err.message }));
 
@@ -230,7 +232,11 @@ ipcMain.handle('update:install', () => {
   autoUpdater.quitAndInstall();
 });
 ipcMain.handle('update:check', () => {
-  autoUpdater.checkForUpdates().catch(() => {});
+  if (!app.isPackaged) {
+    sendUpdateStatus('not-available');
+    return;
+  }
+  autoUpdater.checkForUpdates().catch((err) => sendUpdateStatus('error', { message: err.message }));
 });
 
 app.whenReady().then(() => {

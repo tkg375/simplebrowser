@@ -11,6 +11,7 @@ const reloadBtn = document.getElementById('reload');
 const newTabBtn = document.getElementById('new-tab');
 const updatePill = document.getElementById('update-pill');
 const updatePillText = document.getElementById('update-pill-text');
+const checkUpdatesBtn = document.getElementById('check-updates');
 
 let currentState = { tabs: [], activeTabId: null };
 let addressFocused = false;
@@ -80,15 +81,49 @@ forwardBtn.addEventListener('click', () => window.browser.forward());
 reloadBtn.addEventListener('click', () => window.browser.reload());
 newTabBtn.addEventListener('click', () => window.browser.newTab());
 
+let updateReady = false;
+let transientHideTimer = null;
+
 window.browser.onUpdateStatus((status) => {
+  clearTimeout(transientHideTimer);
+
+  if (status.status === 'checking') {
+    checkUpdatesBtn.classList.add('spinning');
+    checkUpdatesBtn.disabled = true;
+  } else {
+    checkUpdatesBtn.classList.remove('spinning');
+    checkUpdatesBtn.disabled = false;
+  }
+
   if (status.status === 'ready') {
+    updateReady = true;
     updatePillText.textContent = `Update to ${status.version} – Restart`;
     updatePill.style.display = 'flex';
+  } else if (status.status === 'not-available' && !updateReady) {
+    updatePillText.textContent = "You're up to date";
+    updatePill.style.display = 'flex';
+    updatePill.classList.add('info');
+    transientHideTimer = setTimeout(() => {
+      updatePill.style.display = 'none';
+      updatePill.classList.remove('info');
+    }, 2500);
+  } else if (status.status === 'error' && !updateReady) {
+    updatePillText.textContent = 'Update check failed';
+    updatePill.style.display = 'flex';
+    updatePill.classList.add('info');
+    transientHideTimer = setTimeout(() => {
+      updatePill.style.display = 'none';
+      updatePill.classList.remove('info');
+    }, 2500);
   }
 });
 
 updatePill.addEventListener('click', () => {
-  window.browser.installUpdate();
+  if (updateReady) window.browser.installUpdate();
+});
+
+checkUpdatesBtn.addEventListener('click', () => {
+  window.browser.checkForUpdate();
 });
 
 window.browser.onWindowState((state) => {
