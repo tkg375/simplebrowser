@@ -289,6 +289,7 @@ function createWindow() {
       sandbox: true,
     },
   });
+  toolbarView.setBackgroundColor('#00000000');
   mainWindow.contentView.addChildView(toolbarView);
   toolbarView.webContents.loadFile(path.join(__dirname, 'toolbar.html'));
   mainWindow.__toolbarView = toolbarView;

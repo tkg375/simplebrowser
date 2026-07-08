@@ -44,7 +44,7 @@ html, body {
   padding: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--bg);
+  background: transparent;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 13px;
   color: var(--text);
@@ -76,11 +76,12 @@ html, body {
 }
 
 .tabs-list {
-  flex: 1;
+  flex: 0 1 auto;
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
+  max-width: 100%;
   overflow: hidden;
 }
 
@@ -90,6 +91,7 @@ html, body {
   gap: 2px;
   height: 28px;
   flex-shrink: 0;
+  margin-left: auto;
   -webkit-app-region: no-drag;
 }
 
@@ -336,6 +338,8 @@ html, body {
 
 .new-tab {
   margin-left: 2px;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
 }
 
 .update-pill {
