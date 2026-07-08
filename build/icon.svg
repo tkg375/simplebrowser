@@ -1,0 +1,27 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5b8dff"/>
+      <stop offset="100%" stop-color="#7c5cff"/>
+    </linearGradient>
+    <linearGradient id="globeShade" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.55"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="224" fill="url(#glow)"/>
+
+  <g transform="translate(512,512)">
+    <circle r="288" fill="none" stroke="url(#globeShade)" stroke-width="26"/>
+    <ellipse rx="288" ry="112" fill="none" stroke="url(#globeShade)" stroke-width="20"/>
+    <ellipse rx="288" ry="112" fill="none" stroke="url(#globeShade)" stroke-width="20" transform="rotate(60)"/>
+    <ellipse rx="288" ry="112" fill="none" stroke="url(#globeShade)" stroke-width="20" transform="rotate(120)"/>
+    <circle r="44" fill="#ffffff"/>
+  </g>
+</svg>

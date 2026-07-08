@@ -126,6 +126,7 @@ function createWindow() {
     minHeight: 480,
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#1e1f22',
+    icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
