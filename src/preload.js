@@ -17,4 +17,6 @@ contextBridge.exposeInMainWorld('browser', {
   minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
   maximizeWindow: () => ipcRenderer.invoke('window:maximize'),
   closeWindow: () => ipcRenderer.invoke('window:close'),
+  openHistory: () => ipcRenderer.invoke('tabs:openHistory'),
+  setMenuOpen: (expanded) => ipcRenderer.invoke('menu:setOpen', expanded),
 });

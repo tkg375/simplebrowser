@@ -1,0 +1,136 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f5f6f8;
+  --text: #14151a;
+  --text-dim: #6b6d76;
+  --border: rgba(20, 21, 26, 0.08);
+  --row-hover: rgba(20, 21, 26, 0.04);
+  --accent-1: #5b8dff;
+  --accent-2: #7c5cff;
+  --danger: #e5484d;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #101114;
+    --text: #f2f2f5;
+    --text-dim: #8b8d96;
+    --border: rgba(255, 255, 255, 0.08);
+    --row-hover: rgba(255, 255, 255, 0.05);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+h1 {
+  font-size: 22px;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.clear-btn {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+
+.clear-btn:hover {
+  filter: brightness(1.08);
+}
+
+.empty {
+  padding: 60px 32px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+
+.list {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 32px 40px;
+}
+
+.day-group {
+  margin-top: 24px;
+}
+
+.day-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px 4px;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.entry:hover {
+  background: var(--row-hover);
+}
+
+.entry .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+}
+
+.entry .title {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 400px;
+}
+
+.entry .url {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.entry .time {
+  font-size: 12px;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}

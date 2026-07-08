@@ -1,6 +1,16 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, session, Menu } = require('electron');
 const path = require('path');
+const fs = require('fs');
+const { pathToFileURL } = require('url');
 const { autoUpdater } = require('electron-updater');
+const { ElectronBlocker } = require('@ghostery/adblocker-electron');
+
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+});
+process.on('unhandledRejection', (err) => {
+  console.error('[unhandledRejection]', err);
+});
 
 const TOOLBAR_HEIGHT = 76;
 const DEFAULT_URL = 'https://www.google.com';
@@ -9,6 +19,35 @@ let mainWindow;
 let tabs = []; // { id, view, title, url, isLoading }
 let activeTabId = null;
 let nextTabId = 1;
+let history = []; // { url, title, visitedAt }
+let historyPath = null;
+
+function loadHistory() {
+  historyPath = path.join(app.getPath('userData'), 'history.json');
+  try {
+    history = JSON.parse(fs.readFileSync(historyPath, 'utf8'));
+  } catch {
+    history = [];
+  }
+}
+
+function saveHistory() {
+  try {
+    fs.writeFileSync(historyPath, JSON.stringify(history));
+  } catch (err) {
+    console.error('Failed to save history:', err);
+  }
+}
+
+function addHistoryEntry(url, title) {
+  if (!/^https?:\/\//i.test(url)) return;
+  history.unshift({ url, title: title || url, visitedAt: Date.now() });
+  if (history.length > 2000) history.length = 2000;
+  saveHistory();
+  if (mainWindow && mainWindow.__toolbarView) {
+    mainWindow.__toolbarView.webContents.send('history:updated');
+  }
+}
 
 function sendState() {
   if (!mainWindow || !mainWindow.__toolbarView) return;
@@ -37,9 +76,23 @@ function layoutActiveView() {
   });
 }
 
+function raiseToolbar() {
+  if (!mainWindow || !mainWindow.__toolbarView) return;
+  mainWindow.contentView.removeChildView(mainWindow.__toolbarView);
+  mainWindow.contentView.addChildView(mainWindow.__toolbarView);
+}
+
+function setToolbarExpanded(expanded) {
+  if (!mainWindow || !mainWindow.__toolbarView) return;
+  const [w] = mainWindow.getContentSize();
+  const height = expanded ? TOOLBAR_HEIGHT + 260 : TOOLBAR_HEIGHT;
+  mainWindow.__toolbarView.setBounds({ x: 0, y: 0, width: w, height });
+}
+
 function createTab(url = DEFAULT_URL, makeActive = true) {
   const view = new WebContentsView({
     webPreferences: {
+      preload: path.join(__dirname, 'tab-preload.js'),
       contextIsolation: true,
       sandbox: true,
     },
@@ -48,6 +101,7 @@ function createTab(url = DEFAULT_URL, makeActive = true) {
   const tab = { id: nextTabId++, view, title: 'New Tab', url, isLoading: false };
   tabs.push(tab);
   mainWindow.contentView.addChildView(view);
+  raiseToolbar();
 
   const wc = view.webContents;
 
@@ -62,10 +116,16 @@ function createTab(url = DEFAULT_URL, makeActive = true) {
   wc.on('page-title-updated', (_e, title) => {
     tab.title = title;
     sendState();
+    const entry = history.find((h) => h.url === tab.url);
+    if (entry) {
+      entry.title = title;
+      saveHistory();
+    }
   });
   wc.on('did-navigate', (_e, navUrl) => {
     tab.url = navUrl;
     sendState();
+    addHistoryEntry(navUrl, tab.title);
   });
   wc.on('did-navigate-in-page', (_e, navUrl) => {
     tab.url = navUrl;
@@ -116,6 +176,79 @@ function normalizeInput(input) {
     return `https://${trimmed}`;
   }
   return `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
+}
+
+function getHostname(url) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
+function isSameSite(hostA, hostB) {
+  if (!hostA || !hostB) return false;
+  if (hostA === hostB) return true;
+  return hostA.endsWith(`.${hostB}`) || hostB.endsWith(`.${hostA}`);
+}
+
+function isThirdPartyRequest(details) {
+  if (!details.url.startsWith('http')) return false;
+  const tab = tabs.find((t) => t.view.webContents.id === details.webContentsId);
+  if (!tab) return false;
+  const topHost = getHostname(tab.url);
+  const reqHost = getHostname(details.url);
+  if (!topHost || !reqHost) return false;
+  return !isSameSite(topHost, reqHost);
+}
+
+async function setupAdblocker() {
+  const cachePath = path.join(app.getPath('userData'), 'adblocker-engine.bin');
+  const blocker = await ElectronBlocker.fromLists(
+    fetch,
+    [
+      'https://easylist.to/easylist/easylist.txt',
+      'https://easylist.to/easylist/easyprivacy.txt',
+    ],
+    {},
+    {
+      path: cachePath,
+      read: fs.promises.readFile,
+      write: fs.promises.writeFile,
+    }
+  );
+  blocker.enableBlockingInSession(session.defaultSession);
+}
+
+function setupPrivacyAndSecurity() {
+  const ses = session.defaultSession;
+
+  ses.webRequest.onBeforeSendHeaders((details, callback) => {
+    if (isThirdPartyRequest(details) && details.requestHeaders.Cookie) {
+      delete details.requestHeaders.Cookie;
+    }
+    callback({ requestHeaders: details.requestHeaders });
+  });
+
+  ses.webRequest.onHeadersReceived((details, callback) => {
+    if (isThirdPartyRequest(details) && details.responseHeaders) {
+      delete details.responseHeaders['set-cookie'];
+      delete details.responseHeaders['Set-Cookie'];
+    }
+    callback({ responseHeaders: details.responseHeaders });
+  });
+
+  ses.webRequest.onBeforeRequest({ urls: ['http://*/*'] }, (details, callback) => {
+    if (details.resourceType === 'mainFrame') {
+      callback({ redirectURL: details.url.replace(/^http:\/\//, 'https://') });
+    } else {
+      callback({});
+    }
+  });
+
+  ses.setPermissionRequestHandler((_webContents, _permission, callback) => {
+    callback(false);
+  });
 }
 
 function sendWindowState() {
@@ -184,9 +317,20 @@ ipcMain.handle('window:maximize', () => {
   else mainWindow.maximize();
 });
 ipcMain.handle('window:close', () => mainWindow && mainWindow.close());
+ipcMain.handle('menu:setOpen', (_e, expanded) => setToolbarExpanded(expanded));
 
 ipcMain.handle('tabs:new', (_e, url) => {
   createTab(url || DEFAULT_URL, true);
+});
+ipcMain.handle('tabs:openHistory', () => {
+  const existing = tabs.find((t) => t.url.startsWith('file:') && t.url.endsWith('history.html'));
+  if (existing) {
+    activeTabId = existing.id;
+    layoutActiveView();
+    sendState();
+  } else {
+    createTab(pathToFileURL(path.join(__dirname, 'history.html')).href, true);
+  }
 });
 ipcMain.handle('tabs:close', (_e, id) => closeTab(id));
 ipcMain.handle('tabs:activate', (_e, id) => {
@@ -215,6 +359,15 @@ ipcMain.handle('nav:stop', () => {
   if (tab) tab.view.webContents.stop();
 });
 
+ipcMain.handle('history:get', () => history);
+ipcMain.handle('history:clear', () => {
+  history = [];
+  saveHistory();
+});
+ipcMain.handle('history:open', (_e, url) => {
+  createTab(url, true);
+});
+
 function sendUpdateStatus(status, extra = {}) {
   if (mainWindow && mainWindow.__toolbarView) {
     mainWindow.__toolbarView.webContents.send('update:status', { status, ...extra });
@@ -239,8 +392,15 @@ ipcMain.handle('update:check', () => {
   autoUpdater.checkForUpdates().catch((err) => sendUpdateStatus('error', { message: err.message }));
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   Menu.setApplicationMenu(null);
+  loadHistory();
+  setupPrivacyAndSecurity();
+  try {
+    await setupAdblocker();
+  } catch (err) {
+    console.error('Adblocker setup failed:', err);
+  }
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

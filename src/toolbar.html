@@ -2,6 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:;" />
 <title>Toolbar</title>
 <link rel="stylesheet" href="toolbar.css" />
 </head>
@@ -50,9 +51,21 @@
       <span id="update-pill-text">Update ready</span>
     </button>
 
-    <button id="check-updates" class="icon-btn" title="Check for updates">
-      <svg viewBox="0 0 24 24"><path d="M7 16.5a4.5 4.5 0 0 1-.5-8.97A5.5 5.5 0 0 1 17.3 9.03 4 4 0 0 1 17 16.5H7z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M9.5 13.5l2 2 3-3.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </button>
+    <div class="settings-wrap">
+      <button id="settings-btn" class="icon-btn" title="Settings">
+        <svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="M19.4 13a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V19a2 2 0 11-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 13a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 6.51a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 008.42 2.2 1.65 1.65 0 009.93 1H10a2 2 0 114 0v.09a1.65 1.65 0 001.51 1c.6.25 1.31.12 1.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82c.25.6.83 1 1.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div id="settings-menu" class="settings-menu" style="display:none;">
+        <button id="menu-history" class="menu-item">
+          <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.36 2.64L3 8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 3v5h5M12 7v5l4 2" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>History</span>
+        </button>
+        <button id="menu-check-updates" class="menu-item">
+          <svg viewBox="0 0 24 24"><path d="M7 16.5a4.5 4.5 0 0 1-.5-8.97A5.5 5.5 0 0 1 17.3 9.03 4 4 0 0 1 17 16.5H7z" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M9.5 13.5l2 2 3-3.5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Check for updates</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <script src="toolbar.js"></script>

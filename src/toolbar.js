@@ -11,7 +11,10 @@ const reloadBtn = document.getElementById('reload');
 const newTabBtn = document.getElementById('new-tab');
 const updatePill = document.getElementById('update-pill');
 const updatePillText = document.getElementById('update-pill-text');
-const checkUpdatesBtn = document.getElementById('check-updates');
+const settingsBtn = document.getElementById('settings-btn');
+const settingsMenu = document.getElementById('settings-menu');
+const menuHistory = document.getElementById('menu-history');
+const menuCheckUpdates = document.getElementById('menu-check-updates');
 
 let currentState = { tabs: [], activeTabId: null };
 let addressFocused = false;
@@ -87,14 +90,6 @@ let transientHideTimer = null;
 window.browser.onUpdateStatus((status) => {
   clearTimeout(transientHideTimer);
 
-  if (status.status === 'checking') {
-    checkUpdatesBtn.classList.add('spinning');
-    checkUpdatesBtn.disabled = true;
-  } else {
-    checkUpdatesBtn.classList.remove('spinning');
-    checkUpdatesBtn.disabled = false;
-  }
-
   if (status.status === 'ready') {
     updateReady = true;
     updatePillText.textContent = `Update to ${status.version} – Restart`;
@@ -122,7 +117,29 @@ updatePill.addEventListener('click', () => {
   if (updateReady) window.browser.installUpdate();
 });
 
-checkUpdatesBtn.addEventListener('click', () => {
+function setMenuOpen(open) {
+  settingsMenu.style.display = open ? 'block' : 'none';
+  window.browser.setMenuOpen(open);
+}
+
+settingsBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  setMenuOpen(settingsMenu.style.display !== 'block');
+});
+
+document.addEventListener('click', (e) => {
+  if (settingsMenu.style.display === 'block' && !settingsMenu.contains(e.target) && e.target !== settingsBtn) {
+    setMenuOpen(false);
+  }
+});
+
+menuHistory.addEventListener('click', () => {
+  setMenuOpen(false);
+  window.browser.openHistory();
+});
+
+menuCheckUpdates.addEventListener('click', () => {
+  setMenuOpen(false);
   window.browser.checkForUpdate();
 });
 
