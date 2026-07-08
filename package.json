@@ -7,7 +7,7 @@
     "start": "electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "release": "electron-builder --publish always"
+    "release": "node scripts/release.js"
   },
   "keywords": [],
   "author": "",
@@ -56,7 +56,8 @@
       "runAfterFinish": true,
       "installerIcon": "build/icon.ico",
       "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico"
+      "installerHeaderIcon": "build/icon.ico",
+      "artifactName": "Simple-Browser-Setup-${version}.${ext}"
     }
   }
 }
