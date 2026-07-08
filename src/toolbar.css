@@ -157,20 +157,9 @@ html, body {
 }
 
 .tab.active {
-  background: var(--tab-active-bg);
+  background: linear-gradient(0deg, rgba(91, 141, 255, 0.14), rgba(91, 141, 255, 0.14)), var(--tab-active-bg);
   color: var(--text);
-  box-shadow: var(--shadow-md);
-}
-
-.tab.active::before {
-  content: "";
-  position: absolute;
-  left: 12px;
-  right: 12px;
-  bottom: -1px;
-  height: 2px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--accent-1), var(--accent-2));
+  box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(91, 141, 255, 0.3);
 }
 
 .tab .favicon {

@@ -18,31 +18,56 @@ const menuCheckUpdates = document.getElementById('menu-check-updates');
 
 let currentState = { tabs: [], activeTabId: null };
 let addressFocused = false;
+const tabElements = new Map(); // id -> { el, titleEl }
+
+function createTabElement(tab) {
+  const el = document.createElement('div');
+  el.innerHTML = `
+    <div class="favicon"></div>
+    <div class="title"></div>
+    <div class="close">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+    </div>
+  `;
+  el.addEventListener('click', (e) => {
+    if (e.target.closest('.close')) return;
+    window.browser.activateTab(tab.id);
+  });
+  el.querySelector('.close').addEventListener('click', (e) => {
+    e.stopPropagation();
+    window.browser.closeTab(tab.id);
+  });
+  return { el, titleEl: el.querySelector('.title') };
+}
 
 function render(state) {
   currentState = state;
-  tabsListEl.innerHTML = '';
 
-  state.tabs.forEach((tab) => {
-    const el = document.createElement('div');
-    el.className = 'tab' + (tab.id === state.activeTabId ? ' active' : '') + (tab.isLoading ? ' loading' : '');
-    el.innerHTML = `
-      <div class="favicon"></div>
-      <div class="title">${escapeHtml(tab.title || 'New Tab')}</div>
-      <div class="close">
-        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
-      </div>
-    `;
-    el.addEventListener('click', (e) => {
-      if (e.target.closest('.close')) return;
-      window.browser.activateTab(tab.id);
-    });
-    el.querySelector('.close').addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.browser.closeTab(tab.id);
-    });
-    tabsListEl.appendChild(el);
+  const seenIds = new Set();
+  state.tabs.forEach((tab, index) => {
+    seenIds.add(tab.id);
+    let entry = tabElements.get(tab.id);
+    if (!entry) {
+      entry = createTabElement(tab);
+      tabElements.set(tab.id, entry);
+    }
+
+    entry.el.className = 'tab' + (tab.id === state.activeTabId ? ' active' : '') + (tab.isLoading ? ' loading' : '');
+    const titleText = tab.title || 'New Tab';
+    if (entry.titleEl.textContent !== titleText) entry.titleEl.textContent = titleText;
+
+    const nodeAtIndex = tabsListEl.children[index];
+    if (nodeAtIndex !== entry.el) {
+      tabsListEl.insertBefore(entry.el, nodeAtIndex || null);
+    }
   });
+
+  for (const [id, entry] of tabElements) {
+    if (!seenIds.has(id)) {
+      entry.el.remove();
+      tabElements.delete(id);
+    }
+  }
 
   const active = state.tabs.find((t) => t.id === state.activeTabId);
   if (active) {
@@ -54,13 +79,8 @@ function render(state) {
   }
 }
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
 window.browser.onState(render);
+window.browser.notifyReady();
 
 addressEl.addEventListener('focus', () => {
   addressFocused = true;

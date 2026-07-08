@@ -19,4 +19,5 @@ contextBridge.exposeInMainWorld('browser', {
   closeWindow: () => ipcRenderer.invoke('window:close'),
   openHistory: () => ipcRenderer.invoke('tabs:openHistory'),
   setMenuOpen: (expanded) => ipcRenderer.invoke('menu:setOpen', expanded),
+  notifyReady: () => ipcRenderer.invoke('toolbar:ready'),
 });

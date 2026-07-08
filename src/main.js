@@ -319,16 +319,24 @@ function createWindow() {
     layoutActiveView();
   };
   mainWindow.on('resize', resize);
-  toolbarView.webContents.once('did-finish-load', () => {
-    resize();
-    createTab(DEFAULT_URL, true);
-    sendWindowState();
-  });
+
+  // Start loading the first tab immediately instead of waiting on the
+  // toolbar's did-finish-load -- the two are independent, so loading
+  // them in parallel shaves real time off startup. The toolbar pulls
+  // current state itself once ready (see 'toolbar:ready' handler)
+  // instead of racing a push from here.
+  resize();
+  createTab(DEFAULT_URL, true);
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
+
+ipcMain.handle('toolbar:ready', () => {
+  sendState();
+  sendWindowState();
+});
 
 ipcMain.handle('window:minimize', () => mainWindow && mainWindow.minimize());
 ipcMain.handle('window:maximize', () => {
