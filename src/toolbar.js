@@ -1,4 +1,9 @@
 const tabbarEl = document.getElementById('tabbar');
+const tabsListEl = document.getElementById('tabs-list');
+const windowControlsEl = document.getElementById('window-controls');
+const winMinimizeBtn = document.getElementById('win-minimize');
+const winMaximizeBtn = document.getElementById('win-maximize');
+const winCloseBtn = document.getElementById('win-close');
 const addressEl = document.getElementById('address');
 const backBtn = document.getElementById('back');
 const forwardBtn = document.getElementById('forward');
@@ -12,7 +17,7 @@ let addressFocused = false;
 
 function render(state) {
   currentState = state;
-  tabbarEl.innerHTML = '';
+  tabsListEl.innerHTML = '';
 
   state.tabs.forEach((tab) => {
     const el = document.createElement('div');
@@ -32,7 +37,7 @@ function render(state) {
       e.stopPropagation();
       window.browser.closeTab(tab.id);
     });
-    tabbarEl.appendChild(el);
+    tabsListEl.appendChild(el);
   });
 
   const active = state.tabs.find((t) => t.id === state.activeTabId);
@@ -85,3 +90,18 @@ window.browser.onUpdateStatus((status) => {
 updatePill.addEventListener('click', () => {
   window.browser.installUpdate();
 });
+
+window.browser.onWindowState((state) => {
+  if (state.platform === 'darwin') {
+    tabbarEl.classList.add('mac');
+    windowControlsEl.style.display = 'none';
+  } else {
+    tabbarEl.classList.remove('mac');
+    windowControlsEl.style.display = 'flex';
+    winMaximizeBtn.title = state.isMaximized ? 'Restore' : 'Maximize';
+  }
+});
+
+winMinimizeBtn.addEventListener('click', () => window.browser.minimizeWindow());
+winMaximizeBtn.addEventListener('click', () => window.browser.maximizeWindow());
+winCloseBtn.addEventListener('click', () => window.browser.closeWindow());

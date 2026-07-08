@@ -8,7 +8,20 @@
 <body>
   <div class="drag-region"></div>
 
-  <div id="tabbar" class="tabbar"></div>
+  <div id="tabbar" class="tabbar">
+    <div id="tabs-list" class="tabs-list"></div>
+    <div id="window-controls" class="window-controls" style="display:none;">
+      <button id="win-minimize" class="win-btn" title="Minimize">
+        <svg viewBox="0 0 10 10"><path d="M1 5h8" stroke="currentColor" stroke-width="1" /></svg>
+      </button>
+      <button id="win-maximize" class="win-btn" title="Maximize">
+        <svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" fill="none" stroke="currentColor" stroke-width="1" /></svg>
+      </button>
+      <button id="win-close" class="win-btn win-close" title="Close">
+        <svg viewBox="0 0 10 10"><path d="M1 1l8 8M9 1l-8 8" stroke="currentColor" stroke-width="1.2" /></svg>
+      </button>
+    </div>
+  </div>
 
   <div class="navbar">
     <div class="nav-buttons">

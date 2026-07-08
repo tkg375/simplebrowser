@@ -1,8 +1,8 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, session } = require('electron');
+const { app, BrowserWindow, WebContentsView, ipcMain, session, Menu } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
 
-const TOOLBAR_HEIGHT = 88;
+const TOOLBAR_HEIGHT = 76;
 const DEFAULT_URL = 'https://www.google.com';
 
 let mainWindow;
@@ -11,8 +11,8 @@ let activeTabId = null;
 let nextTabId = 1;
 
 function sendState() {
-  if (!mainWindow) return;
-  mainWindow.webContents.send('tabs:state', {
+  if (!mainWindow || !mainWindow.__toolbarView) return;
+  mainWindow.__toolbarView.webContents.send('tabs:state', {
     tabs: tabs.map((t) => ({
       id: t.id,
       title: t.title,
@@ -118,14 +118,26 @@ function normalizeInput(input) {
   return `https://www.google.com/search?q=${encodeURIComponent(trimmed)}`;
 }
 
+function sendWindowState() {
+  if (mainWindow && mainWindow.__toolbarView) {
+    mainWindow.__toolbarView.webContents.send('window:state', {
+      isMaximized: mainWindow.isMaximized(),
+      platform: process.platform,
+    });
+  }
+}
+
 function createWindow() {
+  const isMac = process.platform === 'darwin';
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 640,
     minHeight: 480,
-    titleBarStyle: 'hiddenInset',
-    backgroundColor: '#1e1f22',
+    frame: false,
+    titleBarStyle: isMac ? 'hiddenInset' : undefined,
+    backgroundColor: '#101114',
     icon: path.join(__dirname, '..', 'build', 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -133,6 +145,9 @@ function createWindow() {
       sandbox: true,
     },
   });
+
+  mainWindow.on('maximize', () => sendWindowState());
+  mainWindow.on('unmaximize', () => sendWindowState());
 
   const toolbarView = new WebContentsView({
     webPreferences: {
@@ -154,12 +169,21 @@ function createWindow() {
   toolbarView.webContents.once('did-finish-load', () => {
     resize();
     createTab(DEFAULT_URL, true);
+    sendWindowState();
   });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 }
+
+ipcMain.handle('window:minimize', () => mainWindow && mainWindow.minimize());
+ipcMain.handle('window:maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
+ipcMain.handle('window:close', () => mainWindow && mainWindow.close());
 
 ipcMain.handle('tabs:new', (_e, url) => {
   createTab(url || DEFAULT_URL, true);
@@ -210,6 +234,7 @@ ipcMain.handle('update:check', () => {
 });
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

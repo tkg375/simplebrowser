@@ -13,4 +13,8 @@ contextBridge.exposeInMainWorld('browser', {
   onUpdateStatus: (callback) => ipcRenderer.on('update:status', (_e, status) => callback(status)),
   installUpdate: () => ipcRenderer.invoke('update:install'),
   checkForUpdate: () => ipcRenderer.invoke('update:check'),
+  onWindowState: (callback) => ipcRenderer.on('window:state', (_e, state) => callback(state)),
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  maximizeWindow: () => ipcRenderer.invoke('window:maximize'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
 });
